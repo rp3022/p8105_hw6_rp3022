@@ -214,6 +214,56 @@ It can be observed that most points are scattered around residuals -2 to +2 with
 Based on the summary statistics and the plot I am selecting my_model_2 to compare with the 2 models in Q3 of hw6
 
 
+Cross validation:
+```{r}
+my_model = lm(bwt~ babysex +bhead+blength+gaweeks+delwt+smoken+fincome, data=birthweight)
+hw_model_1 = lm(bwt ~ blength + gaweeks, data = birthweight)
+hw_model_2 = lm(bwt ~ bhead + blength +babysex + bhead*blength*babysex, data =birthweight) 
+ 
+```
+
+```{r}
+
+bw_ds =
+  crossv_mc(birthweight, 100) %>% 
+  mutate(
+    train = map(train, as_tibble),
+    test = map(test, as_tibble))
+
+
+```
+
+```{r}
+bw_ds = 
+  bw_ds %>% 
+  mutate(
+    my_model  = map(train, ~lm(bwt~ babysex +bhead +blength +gaweeks +delwt +smoken +fincome, data = .x)),
+    hw_model_1= map(train, ~lm(bwt ~ blength + gaweeks, data = .x)),
+    hw_model_2= map(train, ~lm(bwt ~ bhead + blength +babysex + bhead*blength*babysex, data = as_tibble(.x)))) %>% 
+  mutate(
+    rmse_my_model = map2_dbl(my_model, test, ~rmse(model = .x, data = .y)),
+    rmse_hw_model_1 =map2_dbl(hw_model_1, test, ~rmse(model = .x, data = .y)),
+    rmse_hw_model_2= map2_dbl(hw_model_2, test, ~rmse(model = .x, data = .y)))
+```
+
+
+```{r}
+bw_ds %>% 
+  select(starts_with("rmse")) %>% 
+  pivot_longer(
+    everything(),
+    names_to = "model", 
+    values_to = "rmse",
+    names_prefix = "rmse_") %>% 
+  mutate(model = fct_inorder(model)) %>% 
+  ggplot(aes(x = model, y = rmse)) + geom_violin()
+```
+
+
+Based on the graph, my model has the best prediction accuracy with the lowest RMSE values. This is followed by hw_model 2 which included variables bhead, blength, babysex and their interaction terms. The largest RMSE value was found for hw_model_1 which included variables blength and gaweeks.
+
+
+
 
 
 
