@@ -195,4 +195,25 @@ summary(my_model_2)
 ```
 
 It can be seen in the summary of the 2nd model that the p value of all variables > 0.05 and is significant. Moreover there is an increase the $r^2$ value of the model i.e 0.7013
-Thus I am keeping this as my selected final model
+
+```{r residual pred plots}
+bw_df = birthweight %>% 
+  modelr::add_residuals(my_model_2) %>% 
+  modelr::add_predictions(my_model_2) 
+
+bw_df %>% 
+  ggplot(aes(x = pred, y = resid)) + geom_point(alpha = 0.5, size = 0.8, colour = "blue") + 
+  labs(
+    title = " residuals vs. predicted values",
+    x = "Predicted value",
+    y = "Residual")
+
+```
+It can be observed that most points are scattered around residuals -2 to +2 with majority being around residual 0 and the model is not violating assumptions. There are outlier residual values associated with smaller predicted values which should be checked.
+
+Based on the summary statistics and the plot I am selecting my_model_2 to compare with the 2 models in Q3 of hw6
+
+
+
+
+
