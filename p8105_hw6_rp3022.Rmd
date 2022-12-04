@@ -124,3 +124,39 @@ knitr::kable(balt_OR)
 ```
 
 The estimate of the adjusted odds ratio for solving homicides comparing male victims to female victims keeping all other variables fixed are 0.43 with a 95% CI (0.32, 0.56)
+
+```{r}
+OR_city = homicide%>% 
+  nest(data = -city_state) %>% 
+  mutate(model_city = map(data, ~ glm(resolved ~ victim_age + victim_sex + victim_race, 
+                                 data = ., family = "binomial")), 
+         result = map(model_city, broom::tidy)) %>% 
+  select(-data, -model_city) %>% 
+  unnest(result) %>% 
+  mutate(OR = exp(estimate),
+         L_95ci = exp(estimate - 1.96*std.error),
+         U_95ci = exp(estimate + 1.96*std.error)) %>% 
+  filter(term == "victim_sexMale") %>% 
+  select(city_state, OR, L_95ci, U_95ci)
+```
+
+```{r}
+plot_city = OR_city %>% 
+  mutate(city_state = fct_reorder(city_state, OR)) %>% 
+  ggplot(aes(x = city_state, y = OR, colour = OR)) + 
+  geom_point() + 
+  geom_errorbar(aes(ymin = L_95ci, ymax = U_95ci, width = .3)) + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1), 
+        legend.position = "none") + 
+  labs(
+    x = "City",
+    y = "Estimated odds ratio",
+    title = " Estimated odds of solving homicides compaing male vs female victim across major U.S. cities, 2007-2017",
+    caption = paste0(
+          "Error bars represent the 95% confidence interval.",
+          "\nSource: The Washington Post."))
+plot_city
+```
+
+
+Based on the graph, it can be noted that across most cities the ORs are less than 1. This suggests that there are decreased odds of resolving a homicide when the victim is male vs. when the victim is female. This odds are lowest for New York. For many cities the 95% CI fo the adjusted OR crosses the null value of , which denotes a statistically insignificant association between sex and solving homicides.The only cities which have increased odds of solving a homicide when the victim is male vs. when the victim is female are Albequerque, Stockton and Fresno but their 95% CI crosses the null value of 1.
