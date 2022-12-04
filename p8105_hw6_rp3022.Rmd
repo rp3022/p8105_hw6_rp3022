@@ -176,3 +176,23 @@ birthweight = read_csv("./data/birthweight.csv") %>%
    
 ```
 For tidying the dataset, I converted birthweight of the baby from grams to pounds to maintain consistency in measuring weight between variables bwt (birthweight of baby) and delwt (mother's weight at delivery). I also converted babysex to a factor variable.
+
+Proposing my own model:
+First I included variables associated with the baby that I think are helpful in predicting baby's weight
+```{r}
+my_model_1 = lm(bwt~ babysex +bhead+blength+gaweeks, data=birthweight)
+ summary(my_model_1)
+
+```
+
+After comparing the estimates, it can be observed that the p value of all variables is < .05 and is significant. Moreover the $r^2$ value is 0.6891 indicating that 68.91% of variance in the birthweight can be explained by variability in the selected variables.
+
+I also want to add variables associated with the baby's parents that I think are important in predicting baby's weight
+
+```{r}
+my_model_2 = lm(bwt~ babysex +bhead+blength+gaweeks+delwt+smoken+fincome, data=birthweight)
+summary(my_model_2)
+```
+
+It can be seen in the summary of the 2nd model that the p value of all variables > 0.05 and is significant. Moreover there is an increase the $r^2$ value of the model i.e 0.7013
+Thus I am keeping this as my selected final model
